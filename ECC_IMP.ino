@@ -1,6 +1,9 @@
 #include <Arduino.h>
 #include "ecdh.h"
 
+
+#define ECC_CURVE NIST_B233
+
 #include "mbedtls/config.h"
 #include "mbedtls/ctr_drbg.h"
 #include "mbedtls/entropy.h"
@@ -119,7 +122,9 @@ static void ecdh_demo(void)
 
 
   unsigned long start_time_a = millis();
-  assert(ecdh_generate_keys(puba, prva));
+//  assert(ecdh_generate_keys(puba, prva));
+ int count = ecdh_generate_keys(puba, prva);
+  Serial.printf("bits cleared: %d \n", count);
   unsigned long end_time_a = millis();
   unsigned long duration_a = end_time_a - start_time_a;
   
@@ -137,7 +142,10 @@ static void ecdh_demo(void)
   Serial.println();
 
   unsigned long start_time_b = millis();
-  assert(ecdh_generate_keys(pubb, prvb));
+//  assert(ecdh_generate_keys(pubb, prvb));
+  count = ecdh_generate_keys(pubb, prvb);
+  Serial.printf("bits cleared: %d \n", count);
+  
   unsigned long end_time_b = millis();
   unsigned long duration_b = end_time_b - start_time_b;
   
@@ -229,12 +237,13 @@ int ncycles = 1;
 void setup() {
     // Initialize serial communication for debugging
   Serial.begin(115200);
+  Serial.printf("Curve Degree : %d\n", CURVE_DEGREE);
 
   // Initialize mbedtls_random
   mbedtls_random_init();
 
   // Set the number of cycles (optional)
-  ncycles = 1; // Set the desired number of cycles
+  ncycles = 2; // Set the desired number of cycles
 
   unsigned long start_time_total = millis(); // Start time for the total program execution
 
@@ -256,11 +265,13 @@ void setup() {
 void loop() {
   static int current_cycle = 0; // Move the variable inside the loop function
 
+
   if (current_cycle < ncycles) {
     Serial.printf("Cycle %d:\n", current_cycle + 1);
     ecdh_demo();
-    ecdsa_broken();
+//    ecdsa_broken();
     current_cycle++;
+ 
   } else {
     // Stop executing the loop when all cycles are completed
     delay(1000);
