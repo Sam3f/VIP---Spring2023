@@ -726,15 +726,19 @@ int ecdh_generate_keys(uint8_t* public_key, uint8_t* private_key)
     int nbits = bitvec_degree(base_order);
     int i;
 
+    int counter = 0;
+
     for (i = (nbits - 1); i < (BITVEC_NWORDS * 32); ++i)
     {
       bitvec_clr_bit((uint32_t*)private_key, i);
+      counter++;
     }
+    printf("bits cleared: %d", counter);
 
     /* Multiply base-point with scalar (private-key) */
     gf2point_mul((uint32_t*)public_key, (uint32_t*)(public_key + BITVEC_NBYTES), (uint32_t*)private_key);
 
-    return 1;
+    return counter;
   }
 }
 
@@ -742,7 +746,7 @@ int ecdh_generate_keys(uint8_t* public_key, uint8_t* private_key)
 
 int ecdh_shared_secret(const uint8_t* private_key, const uint8_t* others_pub, uint8_t* output)
 {
-  /* Do some basic validation of other party's public key */
+  /* Do some basic validation of other party'public key */
   if (    !gf2point_is_zero ((uint32_t*)others_pub, (uint32_t*)(others_pub + BITVEC_NBYTES))
        &&  gf2point_on_curve((uint32_t*)others_pub, (uint32_t*)(others_pub + BITVEC_NBYTES)) )
   {
