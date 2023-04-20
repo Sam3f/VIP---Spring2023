@@ -710,31 +710,25 @@ static int gf2point_on_curve(const gf2elem_t x, const gf2elem_t y)
 
 
 /* NOTE: private should contain random data a-priori! */
-int ecdh_generate_keys(uint8_t* public_key, uint8_t* private_key)
-{
+int ecdh_generate_keys(uint8_t* public_key, uint8_t* private_key) {
   /* Get copy of "base" point 'G' */
   gf2point_copy((uint32_t*)public_key, (uint32_t*)(public_key + BITVEC_NBYTES), base_x, base_y);
 
   /* Abort key generation if random number is too small */
-  if (bitvec_degree((uint32_t*)private_key) < (CURVE_DEGREE / 2))
-  {
+  if (bitvec_degree((uint32_t*)private_key) < (CURVE_DEGREE / 2)) {
     return 0;
   }
-  else
-  {
+  else {
     /* Clear bits > CURVE_DEGREE in highest word to satisfy constraint 1 <= exp < n. */
     int nbits = bitvec_degree(base_order);
     int i;
-
     int counter = 0;
 
-    for (i = (nbits - 1); i < (BITVEC_NWORDS * 32); ++i)
-    {
+    for (i = (nbits - 1); i < (BITVEC_NWORDS * 32); ++i) {
       bitvec_clr_bit((uint32_t*)private_key, i);
       counter++;
     }
     printf("bits cleared: %d", counter);
-
     /* Multiply base-point with scalar (private-key) */
     gf2point_mul((uint32_t*)public_key, (uint32_t*)(public_key + BITVEC_NBYTES), (uint32_t*)private_key);
 
@@ -743,20 +737,15 @@ int ecdh_generate_keys(uint8_t* public_key, uint8_t* private_key)
 }
 
 
-
-int ecdh_shared_secret(const uint8_t* private_key, const uint8_t* others_pub, uint8_t* output)
-{
+int ecdh_shared_secret(const uint8_t* private_key, const uint8_t* others_pub, uint8_t* output) {
   /* Do some basic validation of other party'public key */
   if (    !gf2point_is_zero ((uint32_t*)others_pub, (uint32_t*)(others_pub + BITVEC_NBYTES))
-       &&  gf2point_on_curve((uint32_t*)others_pub, (uint32_t*)(others_pub + BITVEC_NBYTES)) )
-  {
+       &&  gf2point_on_curve((uint32_t*)others_pub, (uint32_t*)(others_pub + BITVEC_NBYTES)) ) {
     /* Copy other side's public key to output */
     unsigned int i;
-    for (i = 0; i < (BITVEC_NBYTES * 2); ++i)
-    {
+    for (i = 0; i < (BITVEC_NBYTES * 2); ++i) {
       output[i] = others_pub[i];
     }
-
     /* Multiply other side's public key with own private key */
     gf2point_mul((uint32_t*)output,(uint32_t*)(output + BITVEC_NBYTES), (const uint32_t*)private_key);
 
@@ -769,7 +758,6 @@ int ecdh_shared_secret(const uint8_t* private_key, const uint8_t* others_pub, ui
     gf2point_double((uint32_t*)output, (uint32_t*)(output + BITVEC_NBYTES));
  #endif
 #endif
-    
     return 1;
   }
   else
